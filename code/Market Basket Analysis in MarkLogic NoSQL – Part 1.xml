@@ -1,0 +1,49 @@
+<export><workspace name="mlAdvancedAnalytics"><query name="Itemset" focus="true" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">// query
+cts.valueTuples([cts.elementReference(xs.QName("productName")), cts.elementReference(xs.QName("productName"))], "ordered");</query><query name="FrequentItemsets" focus="false" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">// query
+var itemSet = cts.valueTuples([cts.elementReference(xs.QName("productName")), cts.elementReference(xs.QName("productName"))], "ordered");
+var itemSetFreq = [];
+for (var item of itemSet) {
+  var freq = cts.frequency(item);
+    itemSetFreq.push({"itemSet":item, "support":freq});
+  }
+itemSetFreq;
+</query><query name="Using Function" focus="false" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">// query
+/* The function returns frequent itemsets based on itemField that occurs at minimum supp times 
+   and consist of minimum minlen and maximum maxlen items. 
+   whereQuery is used to limit the data used and must be a cts.query */
+function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
+  /* calculate the minimum support count */
+  var trans = cts.estimate(whereQuery);
+  var minTransSupp = trans * supp;
+  var frequentItemSets = {};
+  var itemSetSize = 1;
+  
+  /* for minlen to maxlen */
+  for (var i = minlen; i &lt;= maxlen; i++) {
+    var valueTuple = 'cts.valueTuples([';
+    for (var j = 1; j &lt;= i; j++) {
+        if (j &gt; 1) {
+          valueTuple = valueTuple + ',';
+        }
+         valueTuple = valueTuple + 'cts.elementReference(xs.QName("' + itemField +'"))';
+    }
+    valueTuple = valueTuple + '],"ordered",' + whereQuery + ')';
+    var itemSet = eval(valueTuple);
+    var itemSetFreq = [];
+    for (var item of itemSet) {
+     var freq = cts.frequency(item);
+     if (freq &gt;= minTransSupp) {
+        itemSetFreq.push({"itemSet":item, "support":freq});
+     }
+    }
+    if (itemSetFreq.length &gt; 0) {
+      frequentItemSets[itemSetSize] = itemSetFreq
+      itemSetSize += 1;
+    }
+  }
+ 
+  return frequentItemSets;
+}
+
+var collQuery = cts.collectionQuery(["apriori"]);
+getFreqItemSets("productName", collQuery, 0.22, 1, 5);</query></workspace></export>

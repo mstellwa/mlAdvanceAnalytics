@@ -7,8 +7,8 @@ for (var item of itemSet) {
     itemSetFreq.push({"itemSet":item, "support":freq});
   }
 itemSetFreq;
-</query><query name="Using Function" focus="false" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">/* The function returns frequent itemsets based on itemField that occurs at minimum supp times 
-   and consist of minimum minlen and maximum maxlen items. 
+</query><query name="Using Function" focus="false" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">/* The function returns frequent itemsets based on itemField that occurs at minimum supp times
+   and consist of minimum minlen and maximum maxlen items.
    whereQuery is used to limit the data used and must be a cts.query */
 function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
   /* calculate the minimum support count */
@@ -16,18 +16,14 @@ function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
   var minTransSupp = trans * supp;
   var frequentItemSets = {};
   var itemSetSize = 1;
-  
+
   /* for minlen to maxlen */
   for (var i = minlen; i &lt;= maxlen; i++) {
-    var valueTuple = 'cts.valueTuples([';
+    var elementRefs = [];
     for (var j = 1; j &lt;= i; j++) {
-        if (j &gt; 1) {
-          valueTuple = valueTuple + ',';
-        }
-         valueTuple = valueTuple + 'cts.elementReference(xs.QName("' + itemField +'"))';
-    }
-    valueTuple = valueTuple + '],"ordered",' + whereQuery + ')';
-    var itemSet = eval(valueTuple);
+    	elementRefs.push(cts.elementReference(xs.QName(itemField)));
+    };
+    var itemSet = cts.valueTuples(elementRefs, 'ordered', whereQuery);
     var itemSetFreq = [];
     for (var item of itemSet) {
      var freq = cts.frequency(item);
@@ -40,15 +36,15 @@ function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
       itemSetSize += 1;
     }
   }
- 
+
   return frequentItemSets;
 }
 
 var collQuery = cts.collectionQuery(["apriori"]);
 var freqItemsSets = getFreqItemSets("productName", collQuery, 0.22, 1, 5);
 freqItemsSets;
-</query><query name="Market Basket Analysis" focus="true" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">/* The function returns frequent itemsets based on itemField that occurs at minimum supp times 
-   and consist of minimum minlen and maximum maxlen items. 
+</query><query name="Market Basket Analysis" focus="true" active="true" content-source="as:17437988462574673149:" mode="javascript">/* The function returns frequent itemsets based on itemField that occurs at minimum supp times
+   and consist of minimum minlen and maximum maxlen items.
    whereQuery is used to limit the data used and must be a cts.query */
 function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
   /* calculate the minimum support count */
@@ -57,15 +53,11 @@ function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
   var itemSetSize = 1;
   /* for minlen to maxlen */
   for (var i = minlen; i &lt;= maxlen; i++) {
-    var valueTuple = 'cts.valueTuples([';
+    var elementRefs = [];
     for (var j = 1; j &lt;= i; j++) {
-        if (j &gt; 1) {
-          valueTuple = valueTuple + ',';
-        }
-         valueTuple = valueTuple + 'cts.elementReference(xs.QName("' + itemField +'"))';
-    }
-    valueTuple = valueTuple + '],"ordered",' + whereQuery + ')';
-    var itemSet = eval(valueTuple); // ValueIterator!!!!!
+    	elementRefs.push(cts.elementReference(xs.QName(itemField)));
+    };
+    var itemSet = cts.valueTuples(elementRefs, 'ordered', whereQuery);
     var itemSetFreq = [];
     for (var item of itemSet) {
      var freq = cts.frequency(item);
@@ -79,13 +71,13 @@ function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
       itemSetSize += 1;
     }
   }
- 
+
   return frequentItemSets;
 }
 
 function getAssociationRules(frequentItemSets, totTrans, minConfidence) {
   /* internal helper functions */
-  
+
   /* returns the itemset from f */
   var extractItemSet = function (f) {
     return f.itemSet;
@@ -106,17 +98,17 @@ function getAssociationRules(frequentItemSets, totTrans, minConfidence) {
         }
       }
     };
-    
+
     var allSubSets = [];
     array.sort();
     for (var i = 1; i &lt; array.length; i++) {
       op(i, array, [], allSubSets);
     }
     allSubSets.push(array);
-    return allSubSets; 
+    return allSubSets;
   };
   /*
-    Returns a array which contains the elements that is in arrayA but not in arrayB 
+    Returns a array which contains the elements that is in arrayA but not in arrayB
     ex. arrayB = ["I1"], arrayA = ["I1", "I2", "I5"]
     diffArray = ["I2", "I5"]
   */
@@ -131,7 +123,7 @@ function getAssociationRules(frequentItemSets, totTrans, minConfidence) {
 
   /* create and save the rules, if they apply to the confidence threshold */
   var saveAssociationRuleFound = function (subsetItemSet) {
-    var diffItemSet = getDiffArray(currentItemSet, subsetItemSet); 
+    var diffItemSet = getDiffArray(currentItemSet, subsetItemSet);
     if (diffItemSet.length &gt; 0) {
       var itemSupport = frequencies[currentItemSet.toString()] / totTrans;
       var subsetSupport = frequencies[subsetItemSet.toString()] / totTrans;
@@ -141,37 +133,37 @@ function getAssociationRules(frequentItemSets, totTrans, minConfidence) {
       }
     }
   };
-  
+
   /*
-    for a itemset, generate all possible subsets, and for each subset 
+    for a itemset, generate all possible subsets, and for each subset
     generate and add rules to associationRules
   */
   var saveAllAssociationRulesFound = function (itemSet) {
     currentItemSet = itemSet;
     toAllSubSets(currentItemSet).forEach(saveAssociationRuleFound);
   };
-  
+
   /* main logic */
   var frequencies = {};
   var currentItemSet;
   var associationRules = [];
-  /* 
-    Generate a objects with the frequencies of all itemsets 
+  /*
+    Generate a objects with the frequencies of all itemsets
     Key is the itemset as a string.
-    Ex ["18th century schooner", "1900s Vintage Bi-Plane", "1903 Ford Model A"] 
+    Ex ["18th century schooner", "1900s Vintage Bi-Plane", "1903 Ford Model A"]
         =&gt;
        "18th century schooner,1900s Vintage Bi-Plane,1903 Ford Model A"
   */
   for (var itemSets in freqItemsSets) {
-    for (var i = 0; i&lt; freqItemsSets[itemSets].length; i++) {         
+    for (var i = 0; i&lt; freqItemsSets[itemSets].length; i++) {
       frequencies[freqItemsSets[itemSets][i].itemSet.toString()] = freqItemsSets[itemSets][i].support;
     };
   };
-  
-  /* 
+
+  /*
      Walk through all itemsets and get the rules for them.
      itemsets are grouped by the number of items they have.
-     1,2,3 etc 
+     1,2,3 etc
    */
   for (var k in freqItemsSets) {
     /* get the all itemsets that has the same number of items */
@@ -186,16 +178,17 @@ function getAssociationRules(frequentItemSets, totTrans, minConfidence) {
 }
 
 var field = "productName";
-var collQuery = cts.collectionQuery(["apriori"]);
+var collQuery = cts.collectionQuery(["apriori"]); // apriori jsonCustomerOrder
 var transLength = cts.estimate(collQuery);
-var minTransSupp = transLength * 0.22;
+var minTransSupp = transLength * 0.05;
 var minItems = 1;
 var maxItems = 5;
 var minConf = 0.01;
 
 /* Get the frequent itemsets */
 var freqItemsSets = getFreqItemSets(field, collQuery, minTransSupp, minItems, maxItems);
+freqItemsSets;
 /* Get the associationRules */
-var associationRules = getAssociationRules(freqItemsSets, transLength, minConf);
-associationRules;
+//var associationRules = getAssociationRules(freqItemsSets, transLength, minConf);
+//associationRules;
 </query></workspace></export>

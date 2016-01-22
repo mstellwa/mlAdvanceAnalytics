@@ -7,9 +7,8 @@ for (var item of itemSet) {
     itemSetFreq.push({"itemSet":item, "support":freq});
   }
 itemSetFreq;
-</query><query name="Using Function" focus="false" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">// query
-/* The function returns frequent itemsets based on itemField that occurs at minimum supp times 
-   and consist of minimum minlen and maximum maxlen items. 
+</query><query name="Using Function" focus="false" active="true" content-source="16262146569394991837:0:Apps" mode="javascript">/* The function returns frequent itemsets based on itemField that occurs at minimum supp times
+   and consist of minimum minlen and maximum maxlen items.
    whereQuery is used to limit the data used and must be a cts.query */
 function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
   /* calculate the minimum support count */
@@ -17,18 +16,14 @@ function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
   var minTransSupp = trans * supp;
   var frequentItemSets = {};
   var itemSetSize = 1;
-  
+
   /* for minlen to maxlen */
   for (var i = minlen; i &lt;= maxlen; i++) {
-    var valueTuple = 'cts.valueTuples([';
+    var elementRefs = [];
     for (var j = 1; j &lt;= i; j++) {
-        if (j &gt; 1) {
-          valueTuple = valueTuple + ',';
-        }
-         valueTuple = valueTuple + 'cts.elementReference(xs.QName("' + itemField +'"))';
-    }
-    valueTuple = valueTuple + '],"ordered",' + whereQuery + ')';
-    var itemSet = eval(valueTuple);
+    	elementRefs.push(cts.elementReference(xs.QName(itemField)));
+    };
+    var itemSet = cts.valueTuples(elementRefs, 'ordered', whereQuery);
     var itemSetFreq = [];
     for (var item of itemSet) {
      var freq = cts.frequency(item);
@@ -41,9 +36,11 @@ function getFreqItemSets(itemField, whereQuery, supp, minlen, maxlen) {
       itemSetSize += 1;
     }
   }
- 
+
   return frequentItemSets;
 }
 
 var collQuery = cts.collectionQuery(["apriori"]);
-getFreqItemSets("productName", collQuery, 0.22, 1, 5);</query></workspace></export>
+var freqItemsSets = getFreqItemSets("productName", collQuery, 0.22, 1, 5);
+freqItemsSets;
+</query></workspace></export>
